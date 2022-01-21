@@ -1,0 +1,20 @@
+{
+  "name": "project",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "nodemon"
+  },
+  "keywords": [],
+  "author": "DZ",
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Avstrian/JS-BackEnd-Cars.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Avstrian/JS-BackEnd-Cars/issues"
+  },
+  "homepage": "https://github.com/Avstrian/JS-BackEnd-Cars#readme",
+  "description": ""
+}
