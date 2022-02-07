@@ -24,8 +24,8 @@ app.get('/', home)
 app.get('/about', about)
 
 app.route('/create')
-    .get(create.get())
-    .post(create.post());
+    .get(create.get)
+    .post(create.post);
 
 app.get('/details/:id', details)
 
