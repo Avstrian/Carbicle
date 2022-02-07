@@ -1,5 +1,8 @@
 module.exports = {
-    create(req, res) {
-        res.render('create');
+    get(req, res) {
+        res.render('create', { title: 'Create Listing' });
+    },
+    post(req, res) {
+        
     }
 };
