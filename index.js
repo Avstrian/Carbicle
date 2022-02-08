@@ -8,6 +8,8 @@ const create = require('./controllers/create');
 const { details } = require('./controllers/details');
 const { home } = require('./controllers/home');
 const { notFound } = require('./controllers/notFound');
+const deleteCar = require('./controllers/remove');
+const editCar = require('./controllers/edit');
 
 const app = express();
 
@@ -26,6 +28,14 @@ app.get('/about', about)
 app.route('/create')
     .get(create.get)
     .post(create.post);
+
+app.route('/remove/:id')
+    .get(deleteCar.get)
+    .post(deleteCar.post);
+
+app.route('/edit/:id')
+    .get(editCar.get)
+    .post(editCar.post);
 
 app.get('/details/:id', details)
 

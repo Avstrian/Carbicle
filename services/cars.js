@@ -1,5 +1,4 @@
 const fs = require('fs/promises');
-
 const filePath = './services/data.json'
 
 async function read() {
@@ -58,6 +57,30 @@ async function getById(id) {
 
 }
 
+async function deleteById(id) {
+    const data = await read();
+
+    if (data.hasOwnProperty(id)) {
+        delete data[id];
+        await write(data);
+    } else {
+        throw new ReferenceError('No such ID in database');
+    }
+
+}
+
+async function editById(id, car) {
+    const data = await read();
+
+    if (data.hasOwnProperty(id)) {
+        data[id] = car;
+        await write(data);
+    } else {
+        throw new ReferenceError('No such ID in database');
+    }
+
+}
+
 async function createCar(car) {
     const cars = await read();
     let id;
@@ -79,6 +102,8 @@ module.exports = () => (req, res, next) => {
     req.storage = {
         getAll,
         getById,
+        deleteById,
+        editById,
         createCar
     };
     next();
