@@ -111,6 +111,10 @@ button:hover {
     cursor: pointer;
 }
 
+.desc {
+    display: none;
+}
+
 a {
     text-decoration: underline;
     color: white;
