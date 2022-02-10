@@ -1,4 +1,7 @@
 const fs = require('fs/promises');
+const { options } = require('nodemon/lib/config');
+const Car = require('../models/Car');
+
 const filePath = './services/data.json'
 
 async function read() {
@@ -23,38 +26,49 @@ async function write(data) {
     }
 }
 
-async function getAll(query) {
-    const data = await read();
-
-    let cars = Object
-        .entries(data)
-        .map(([id, v]) => Object.assign({}, { id }, v))
-    
-    if (query.search) {
-        cars = cars.filter(c => c.name.toLocaleLowerCase().includes(query.search.toLocaleLowerCase()));
+function carViewModel(car) {
+    return {
+        id: car._id,
+        name: car.name,
+        description: car.description,
+        imageUrl: car.imageUrl,
+        price: car.price
     }
-    if (query.from) {
-        cars = cars.filter(c => c.price >= Number(query.from));
-    }
-    if (query.tp) {
-        cars = cars.filter(c => c.price <= Number(query.to));
-    }
-
-    return cars;
-
 }
 
-async function getById(id) {
-    const data = await read();
+async function getAll(query) {
+    const options = {};
 
-    const car = data[id];
+    if (query.search) {
+        options.name = new RegExp(query.search, 'i');
+    }
+    if (query.from) {
+        options.price = { $gte: Number(query.from) };
+    }
+    if (query.to) {
+        if (!options.price) {
+            options.price = {};
+        }
+        options.price.$lte = Number(query.to);
+    }
+
+    const cars = await Car.find(options);
+
+    return cars.map(carViewModel);
+}
+
+
+
+
+
+async function getById(id) {
+    const car = await Car.findById(id);
 
     if (car) {
-        return Object.assign({}, { id }, car);
+        return carViewModel(car);
     } else {
         return undefined;
     }
-
 }
 
 async function deleteById(id) {
@@ -82,16 +96,8 @@ async function editById(id, car) {
 }
 
 async function createCar(car) {
-    const cars = await read();
-    let id;
-
-    do {
-        id = nextId();
-    } while(cars.hasOwnProperty(id));
-
-    cars[id] = car;
-
-    await write(cars);
+    const result = new Car(car);
+    await result.save();
 }
 
 function nextId() {

@@ -1,44 +1,51 @@
 const express = require('express');
 const hbs = require('express-handlebars');
 
+const initDb = require('./models/index');
+
 const carsService = require('./services/cars');
 
 const { about } = require('./controllers/about');
-const create = require('./controllers/create');
 const { details } = require('./controllers/details');
 const { home } = require('./controllers/home');
 const { notFound } = require('./controllers/notFound');
+const create = require('./controllers/create');
 const deleteCar = require('./controllers/remove');
 const editCar = require('./controllers/edit');
 
-const app = express();
+start();
 
-app.engine('hbs', hbs.create({
-    extname: '.hbs'
-}).engine);
-app.set('view engine', 'hbs');
+async function start() {
+    await initDb();
 
-app.use(express.urlencoded({ extended: true }));
-app.use('/static', express.static('static'));
-app.use(carsService());
+    const app = express();
 
-app.get('/', home)
-app.get('/about', about)
+    app.engine('hbs', hbs.create({
+        extname: '.hbs'
+    }).engine);
+    app.set('view engine', 'hbs');
 
-app.route('/create')
-    .get(create.get)
-    .post(create.post);
+    app.use(express.urlencoded({ extended: true }));
+    app.use('/static', express.static('static'));
+    app.use(carsService());
 
-app.route('/remove/:id')
-    .get(deleteCar.get)
-    .post(deleteCar.post);
+    app.get('/', home);
+    app.get('/about', about);
+    app.get('/details/:id', details);
 
-app.route('/edit/:id')
-    .get(editCar.get)
-    .post(editCar.post);
+    app.route('/create')
+        .get(create.get)
+        .post(create.post);
 
-app.get('/details/:id', details)
+    app.route('/remove/:id')
+        .get(deleteCar.get)
+        .post(deleteCar.post);
 
-app.all('*', notFound)
+    app.route('/edit/:id')
+        .get(editCar.get)
+        .post(editCar.post);
 
-app.listen(3000, () => console.log('server started on port 3000'));
+    app.all('*', notFound);
+
+    app.listen(3000, () => console.log('server started on port 3000'));
+}
