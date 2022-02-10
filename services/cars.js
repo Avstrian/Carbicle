@@ -1,30 +1,5 @@
-const fs = require('fs/promises');
 const { options } = require('nodemon/lib/config');
 const Car = require('../models/Car');
-
-const filePath = './services/data.json'
-
-async function read() {
-    try {
-        const file = await fs.readFile(filePath);
-        return JSON.parse(file);
-
-    } catch (err) {
-        console.error('Database read error');
-        console.error(err);
-        process.exit(1);
-    }
-}
-
-async function write(data) {
-    try {
-        await fs.writeFile(filePath, JSON.stringify(data, null, 2));
-    } catch (err) {
-        console.error('Database write error');
-        console.error(err);
-        process.exit(1);
-    }
-}
 
 function carViewModel(car) {
     return {
@@ -57,10 +32,6 @@ async function getAll(query) {
     return cars.map(carViewModel);
 }
 
-
-
-
-
 async function getById(id) {
     const car = await Car.findById(id);
 
@@ -72,36 +43,22 @@ async function getById(id) {
 }
 
 async function deleteById(id) {
-    const data = await read();
-
-    if (data.hasOwnProperty(id)) {
-        delete data[id];
-        await write(data);
-    } else {
-        throw new ReferenceError('No such ID in database');
-    }
-
+    await Car.findByIdAndDelete(id);
 }
 
 async function editById(id, car) {
-    const data = await read();
+    const existing = await Car.findById(id);
+    existing.name = car.name;
+    existing.description = car.description;
+    existing.imageUrl = car.imageUrl;
+    existing.price = car.price;
 
-    if (data.hasOwnProperty(id)) {
-        data[id] = car;
-        await write(data);
-    } else {
-        throw new ReferenceError('No such ID in database');
-    }
-
+    await existing.save();
 }
 
 async function createCar(car) {
     const result = new Car(car);
     await result.save();
-}
-
-function nextId() {
-    return 'xxxxxxxx-xxxx'.replace(/x/g, () => (Math.random() * 16 | 0).toString(16));
 }
 
 module.exports = () => (req, res, next) => {
