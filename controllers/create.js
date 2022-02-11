@@ -6,7 +6,7 @@ module.exports = {
         const car = {
             name: req.body.name,
             description: req.body.description,
-            imageUrl: req.body.imageUrl,
+            imageUrl: req.body.imageUrl || undefined,
             price: Number(req.body.price)
         }
 
