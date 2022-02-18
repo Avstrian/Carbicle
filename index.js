@@ -1,10 +1,13 @@
 const express = require('express');
 const hbs = require('express-handlebars');
+const session = require('express-session')
 
 const initDb = require('./models/index');
 
 const carsService = require('./services/cars');
 const accessoryService = require('./services/accessory');
+const authService = require('./services/auth');
+const { isLoggedIn } = require('./services/util');
 
 const { about } = require('./controllers/about');
 const { details } = require('./controllers/details');
@@ -15,6 +18,7 @@ const deleteCar = require('./controllers/remove');
 const editCar = require('./controllers/edit');
 const accessory = require('./controllers/accessory');
 const attach = require('./controllers/attach');
+const { registerPost, registerGet, loginGet, loginPost, logout } = require('./controllers/auth');
 
 start();
 
@@ -28,34 +32,51 @@ async function start() {
     }).engine);
     app.set('view engine', 'hbs');
 
+    app.use(session({
+        secret: 'my super duper secret',
+        resave: false,
+        saveUninitialized: true,
+        cookie: { secure: 'auto' }
+    }));
     app.use(express.urlencoded({ extended: true }));
     app.use('/static', express.static('static'));
     app.use(carsService());
     app.use(accessoryService());
+    app.use(authService());
 
     app.get('/', home);
     app.get('/about', about);
     app.get('/details/:id', details);
 
     app.route('/create')
-        .get(create.get)
-        .post(create.post);
+        .get(isLoggedIn(), create.get)
+        .post(isLoggedIn(), create.post);
 
     app.route('/remove/:id')
-        .get(deleteCar.get)
-        .post(deleteCar.post);
+        .get(isLoggedIn(), deleteCar.get)
+        .post(isLoggedIn(), deleteCar.post);
 
     app.route('/edit/:id')
-        .get(editCar.get)
-        .post(editCar.post);
+        .get(isLoggedIn(), editCar.get)
+        .post(isLoggedIn(), editCar.post);
 
     app.route('/accessory')
-        .get(accessory.get)
-        .post(accessory.post);
+        .get(isLoggedIn(), accessory.get)
+        .post(isLoggedIn(), accessory.post);
 
     app.route('/attach/:id')
-        .get(attach.get)
-        .post(attach.post);
+        .get(isLoggedIn(), attach.get)
+        .post(isLoggedIn(), attach.post);
+
+    app.route('/register')
+        .get(registerGet)
+        .post(registerPost);
+
+    app.route('/login')
+        .get(loginGet)
+        .post(loginPost);
+
+    app.get('/logout', logout);
 
     app.all('*', notFound);
 
