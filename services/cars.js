@@ -35,15 +35,25 @@ async function getById(id) {
     }
 }
 
-async function deleteById(id) {
-    //await Car.findByIdAndDelete(id);
+async function deleteById(id, ownerId) {
+    const existing = await Car.findById(id).where({ isDeleted: false });
+
+    if (existing.owner != ownerId) {
+        return false;
+    }
+
     await Car.findByIdAndUpdate(id, { isDeleted: true });
 
-
+    return true;
 }
 
-async function editById(id, car) {
+async function editById(id, car, ownerId) {
     const existing = await Car.findById(id).where({ isDeleted: false });
+
+    if (existing.owner != ownerId) {
+        return false;
+    }
+
     existing.name = car.name;
     existing.description = car.description;
     existing.imageUrl = car.imageUrl;
@@ -51,14 +61,21 @@ async function editById(id, car) {
     existing.accessories = car.accessories;
 
     await existing.save();
+    return true;
 }
 
-async function attachAccessory(carId, accessoryId) {
+async function attachAccessory(carId, accessoryId, ownerId) {
     const existing = await Car.findById(carId);
+
+    if (existing.owner != ownerId) {
+        return false;
+    }
 
     existing.accessories.push(accessoryId);
 
     await existing.save();
+    
+    return true;
 }
 
 async function createCar(car) {

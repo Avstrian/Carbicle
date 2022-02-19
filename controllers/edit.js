@@ -3,6 +3,10 @@ module.exports = {
         const id = req.params.id;
         const car = await req.storage.getById(id);
 
+        if (car.owner != req.session.user.id) {
+            return res.redirect('/login');
+        }
+
         if (car) {
             res.render('edit', { title: 'Carbicle - Edit', car });
         } else {
@@ -19,8 +23,12 @@ module.exports = {
         };
 
         try {
-            await req.storage.editById(id, car);
-            res.redirect('/')
+            if (await req.storage.editById(id, car, req.session.user.id)) {
+                res.redirect('/');
+            } else {
+                res.redirect('/login');
+            }
+            
         } catch (err) {
             console.log(err.message);
             res.redirect('/edit/' + req.params.id);
