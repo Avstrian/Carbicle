@@ -20,6 +20,8 @@ const accessory = require('./controllers/accessory');
 const attach = require('./controllers/attach');
 const { registerPost, registerGet, loginGet, loginPost, logout } = require('./controllers/auth');
 
+const { body } = require('express-validator');
+
 start();
 
 async function start() {
@@ -70,7 +72,20 @@ async function start() {
 
     app.route('/register')
         .get(registerGet)
-        .post(registerPost);
+        .post(
+            body('username')
+                .trim()
+                .isLength({ min: 3 }).withMessage('Username too short').bail()
+                .isAlphanumeric().withMessage('Username can contain only letters and number'),
+            body('password')
+                .trim()
+                .notEmpty().withMessage('Password is required')
+                .isLength({ min: 8 }).withMessage('Password must be at least 8 characters long'),
+            body('repeatPassword')
+                .trim()
+                .custom((value, { req }) => value == req.body.password).withMessage('Passwords do not match'),
+
+            registerPost);
 
     app.route('/login')
         .get(loginGet)
