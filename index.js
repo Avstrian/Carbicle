@@ -18,7 +18,7 @@ const deleteCar = require('./controllers/remove');
 const editCar = require('./controllers/edit');
 const accessory = require('./controllers/accessory');
 const attach = require('./controllers/attach');
-const { registerPost, registerGet, loginGet, loginPost, logout } = require('./controllers/auth');
+const authRouter = require('./controllers/auth');
 
 const { body } = require('express-validator');
 
@@ -70,28 +70,7 @@ async function start() {
         .get(isLoggedIn(), attach.get)
         .post(isLoggedIn(), attach.post);
 
-    app.route('/register')
-        .get(registerGet)
-        .post(
-            body('username')
-                .trim()
-                .isLength({ min: 3 }).withMessage('Username too short').bail()
-                .isAlphanumeric().withMessage('Username can contain only letters and number'),
-            body('password')
-                .trim()
-                .notEmpty().withMessage('Password is required')
-                .isLength({ min: 8 }).withMessage('Password must be at least 8 characters long'),
-            body('repeatPassword')
-                .trim()
-                .custom((value, { req }) => value == req.body.password).withMessage('Passwords do not match'),
-
-            registerPost);
-
-    app.route('/login')
-        .get(loginGet)
-        .post(loginPost);
-
-    app.get('/logout', logout);
+    app.use(authRouter);
 
     app.all('*', notFound);
 

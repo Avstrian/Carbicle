@@ -36,7 +36,7 @@ async function hashPassword(password) {
 async function comparePassword(password, hashedPassword) {
     return bcrypt.compare(password, hashedPassword);
 }
- 
+
 function isLoggedIn() {
     return function (req, res, next) {
         if (req.session.user) {
@@ -47,10 +47,38 @@ function isLoggedIn() {
     }
 }
 
+function mapError(error) {
+    if (Array.isArray(error)) {
+        return error;
+    } else if (error.name == 'MongoServerError') {
+        if (error.code == 11000) {
+            return [{
+                msg: 'Username already exists'
+            }];
+        } else {
+            return [{
+                msg: 'Request error'
+            }];
+        }
+    } else if (error.name == 'MongooseValidationError') {
+        return Object.values(error.errors).map(e => ({ msg: e.message }));
+
+    } else if (typeof error.message == 'string') {
+        return [{
+            msg: error.message
+        }];
+    } else {
+        return [{
+            msg: 'Request error'
+        }];
+    }
+}
+
 module.exports = {
     accessoryViewModel,
     carViewModel,
     hashPassword,
     comparePassword,
-    isLoggedIn
+    isLoggedIn,
+    mapError
 }

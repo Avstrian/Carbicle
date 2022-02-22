@@ -1,16 +1,24 @@
 const { Schema, model } = require('mongoose');
-const { hashPassword, comparePassword} = require('../services/util');
+const { hashPassword, comparePassword } = require('../services/util');
 
 const userSchema = new Schema({
     username: { type: String, required: true, minlength: 3 },
     hashedPassword: { type: String, required: true }
 });
 
-userSchema.methods.comparePassword = async function(password) {
+userSchema.index({ username: 1 }, {
+    unique: true,
+    collation: {
+        locale: 'en',
+        strength: 2
+    }
+});
+
+userSchema.methods.comparePassword = async function (password) {
     return await comparePassword(password, this.hashedPassword);
 };
 
-userSchema.pre('save', async function(next) {
+userSchema.pre('save', async function (next) {
     if (this.isModified('hashedPassword')) {
         this.hashedPassword = await hashPassword(this.hashedPassword);
     }
